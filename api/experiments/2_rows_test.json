@@ -1,0 +1,38 @@
+[
+  {
+    "id": null,
+    "nodeInfo": null,
+    "uid": "1000",
+    "gender": "Transgender",
+    "dateOfBirth": 20121221,
+    "countryOfResidence": "FR",
+    "cityOfResidence": "Dubial",
+    "employmentStatus": "Unepmloyed",
+    "maritalStatus": "Single",
+    "education": "PHD",
+    "employmentIndustry": "Banking",
+    "primaryLanguage": "JP",
+    "otherLanguage": "VN",
+    "householdIncomeAnnual": 3836682,
+    "accountCreationDate": 20220728,
+    "walletAddress": "0x1234abcd"
+  },
+  {
+    "id": null,
+    "nodeInfo": null,
+    "uid": "1001",
+    "gender": "Others",
+    "dateOfBirth": 19801129,
+    "countryOfResidence": "UAE",
+    "cityOfResidence": "Brisbane",
+    "employmentStatus": "Unepmloyed",
+    "maritalStatus": "Married",
+    "education": "MA",
+    "employmentIndustry": "IT",
+    "primaryLanguage": "ES",
+    "otherLanguage": "VN",
+    "householdIncomeAnnual": 8012796,
+    "accountCreationDate": 20231122, 
+        "walletAddress": "0x4321dcab"
+  }
+  ]

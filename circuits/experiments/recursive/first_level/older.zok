@@ -1,0 +1,16 @@
+def main(private field age) {
+    assert(age > 18);
+    return;
+}
+
+/*
+--- First round of proof ---
+
+// Compile with --curve bls12_377
+
+zokrates compile -i program.zok --curve bls12_377
+zokrates setup --proving-scheme gm17 --backend ark
+zokrates compute-witness -a 19
+zokrates generate-proof --proving-scheme gm17 --backend ark
+*/
+

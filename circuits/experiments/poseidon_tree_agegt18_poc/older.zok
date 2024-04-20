@@ -1,0 +1,100 @@
+// from "snark/gm17" import main as verify, Proof, VerificationKey;
+
+import "hashes/poseidon/poseidon" as poseidon;
+
+def main() -> field {
+    field[4][8] rows = [
+        [ 3176497, 999999999999999999, 5402478, 999999999999999999, 32158959249092461, 999999999999999999, 24, 999999999999999999 ],
+        [ 3176498, 999999999999999999, 1164799329, 999999999999999999, 28499784551853933, 999999999999999999, 21, 999999999999999999 ],
+        [ 3176499, 999999999999999999, 328186356833, 999999999999999999, 30470109388828525, 999999999999999999, 15, 999999999999999999 ],
+        [ 3176500, 999999999999999999, 4351342, 999999999999999999, 27655359621721965, 999999999999999999, 17, 999999999999999999 ]
+    ];
+    field[4] mut rowh = [0,0,0,0];
+    for u32 i in 0..4 {
+        rowh[i] = poseidon([poseidon(rows[i][0..4]), poseidon(rows[i][4..8])]);
+        log("rowh{}: {}", i, rowh[i]);
+    }
+
+    field h01 = poseidon([rowh[0], rowh[1]]);
+    field h02 = poseidon([rowh[2], rowh[3]]);
+    log("h01: {} ", h01);
+    log("h23: {}", h02);
+
+    //merkle root calc
+    field root = poseidon([h01, h02]);
+
+    return root;
+}
+
+
+/* 
+
+//The rows were obtained using string -> integer conversions, except for integer values, on the following data set
+// let dataStrings = [
+    ["0x1", "Ron", "r@g.com", 24],
+    ["0x2", "Emma", "e@g.com", 21],
+    ["0x3", "Linda", "l@g.com", 15],
+    ["0x4", "Ben", "b@g.com", 17],
+]
+//We apply to every value, this (in js):  ethers.toBigInt(ethers.toUtf8Bytes(v))
+
+//To run
+zokrates compile --debug -i main.zok
+zokrates compute-witness --verbose
+Computing witness...
+rowh"0x00000000": "3787094234973193042509184074608063469374358949877339071682404635065822548079"
+rowh"0x00000001": "1757000434777297110703524718739113225480950312767375231995166775068945632765"
+rowh"0x00000002": "1927038579576513309472753621483497153641254895807334655864121109391056331607"
+rowh"0x00000003": "18360698026745160852279276580448848311579700458079653563137707394884901699627"
+h01: "4368855459462050031092104059327108010200173653070401086637616568487101070027" 
+h23: "12477316133628291033112379919867927639312056739004068008508556600558684964836"
+
+Witness: 
+["5905768794839436985194007982226180010850796029196627886341011237817770747787"]
+
+
+//The witness above is the final merkle root
+*/
+
+
+
+
+/*
+CASE 2: Age >= 18
+Given a data row of 8 elements: 4 x [data_i, salt_i]
+Given One sibling of the merkle tree
+Given one sibling of the parent
+Verify that root is the root of 2-level merkle tree.
+Note: A 2-level merkle tree can accommodate 4 data points at max (each of 8 element fields)
+*/
+
+import "hashes/poseidon/poseidon" as poseidon;
+
+def main(private field[8] row, private field[2] otherHashes, field root) {
+    assert(row[6] >= 18);
+    field rowh = poseidon([poseidon(row[0..4]), poseidon(row[4..8])]);
+    assert(
+        root == poseidon([
+            poseidon([rowh, otherHashes[0]]),
+            otherHashes[1]
+        ])
+    );
+}
+
+
+/* 
+
+//To run
+zokrates compile --debug -i main.zok
+
+zokrates setup
+
+zokrates compute-witness -a 3176497 999999999999999999 5402478 999999999999999999 32158959249092461 999999999999999999 24 999999999999999999 \
+1757000434777297110703524718739113225480950312767375231995166775068945632765 \
+12477316133628291033112379919867927639312056739004068008508556600558684964836 \
+5905768794839436985194007982226180010850796029196627886341011237817770747787 --verbose
+
+zokrates generate-proof
+
+zokrates verify
+*/

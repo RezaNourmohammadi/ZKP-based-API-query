@@ -1,0 +1,1 @@
+Contains implementation of Poseidon hash function according to the Zexe paper, and round constants taken from Penumbra's implementation

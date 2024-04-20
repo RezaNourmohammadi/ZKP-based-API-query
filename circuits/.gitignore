@@ -1,0 +1,6 @@
+*.json
+out
+out*
+out.*
+*.key
+witness

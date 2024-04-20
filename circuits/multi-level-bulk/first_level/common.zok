@@ -1,0 +1,79 @@
+// import "hashes/poseidon/poseidon" as poseidon;
+import "../../poseidon377/poseidon377" as poseidon;
+
+def performConditionCheck(field rowVal, field cmpVal, u32 operation) -> bool {
+    return if operation == 1 {
+        rowVal == cmpVal
+    } else {
+        if operation == 2 {
+            rowVal >= cmpVal
+        } else {
+            rowVal <= cmpVal
+        }
+    };
+}
+def hashDataPoint(field[28] row) -> field {
+    field mut h1234 = poseidon([
+        poseidon(row[0..4]),
+        poseidon(row[4..8]),
+        poseidon(row[8..12]),
+        poseidon(row[12..16])
+    ]);
+    field mut h567 = poseidon([
+        poseidon(row[16..20]),
+        poseidon(row[20..24]),
+        poseidon(row[24..28])
+    ]);
+
+
+    return poseidon([h1234, h567]);
+}
+
+// Returns the merkle root of 4 elements (2-levels)
+def merkleize4(field[4][28] row) -> field {
+    field[4] mut hashes = [0; 4];
+    u32 mut c = 4;
+    for u32 i in 0..c{
+        hashes[i] = hashDataPoint(row[i]);
+    }
+    for u32 i in 0..2 { //levels = log_2(4)
+        c = c / 2;
+        for u32 j in 0..c {
+            hashes[j] = poseidon([hashes[2*j], hashes[2*j+1]]);
+        }
+    }
+    return hashes[0];
+}
+
+// Returns the merkle root of 128 elements (7-levels)
+def merkleize128(field[128][28] row) -> field {
+    field[128] mut hashes = [0; 128];
+    u32 mut c = 128;
+    for u32 i in 0..c{
+        hashes[i] = hashDataPoint(row[i]);
+    }
+    for u32 i in 0..7 { // i in 0..levels = log_2(128)
+        c = c / 2;
+        for u32 j in 0..c {
+            hashes[j] = poseidon([hashes[2*j], hashes[2*j+1]]);
+        }
+    }
+    return hashes[0];
+}
+
+
+// def assertMerkle8Fields10Level(field[8] row, field[18] merkleArr, field root) -> bool {
+//     bool mut check = true;
+//     // inclusion proof
+//     field dataPointHash = poseidon([poseidon(row[0..4]), poseidon(row[4..8])]);
+//     log("DatapointHash {} ", dataPointHash);
+//     check = check && (dataPointHash == merkleArr[0]);
+//     //verify tree
+//     for u32 i in 0..8 {
+//         check = check && (poseidon([merkleArr[2*i], merkleArr[2*i+1]]) == merkleArr[2*i+2]);
+//     }
+//     //verify root
+//     check = check && (poseidon([merkleArr[16], merkleArr[17]]) == root);
+//     return check;
+// }
+

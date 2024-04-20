@@ -1,0 +1,8 @@
+dist
+node_modules
+.env
+.DS_Store
+*.program
+*.program.old
+*.key
+*.wtns

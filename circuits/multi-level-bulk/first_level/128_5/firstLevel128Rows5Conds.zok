@@ -1,0 +1,188 @@
+// import "hashes/poseidon/poseidon" as poseidon;
+import "../../../poseidon377/poseidon377" as poseidon;
+from "../common.zok" import performConditionCheck, hashDataPoint;
+
+// Returns the merkle root of 128 elements (7-levels)
+def merkleize128(field[128][28] row) -> field {
+    field[128] mut hashes = [0; 128];
+    u32 mut c = 128;
+    for u32 i in 0..c{
+        hashes[i] = hashDataPoint(row[i]);
+    }
+    for u32 i in 0..7 { // i in 0..levels = log_2(128)
+        c = c / 2;
+        for u32 j in 0..c {
+            hashes[j] = poseidon([hashes[2*j], hashes[2*j+1]]);
+        }
+    }
+    return hashes[0];
+}
+
+
+/*
+ Takes 128 rows as inputs, along with a set of 5 conditions (coded in 3 5-len arrays).
+ Returns the count of the number of rows satisfying the AND-aggregate of the conditions
+*/
+def main(private field[128][28] row, field[5] cmpVal, u32[5] queryFieldIndex, u32[5] queryOp) -> (u32, field) {
+    u32 mut count = 0;
+    for u32 i in 0..128{
+        bool mut compoundConditional = true;
+            for u32 j in 0..5 {
+                compoundConditional = compoundConditional &&  (
+                    if queryOp[j] == 0 {true} 
+                    else {
+                        performConditionCheck(row[i][queryFieldIndex[j]], cmpVal[j], queryOp[j])
+                    }
+                );
+            }
+        count = count + if compoundConditional {1} else {0};
+    }
+    field merkle128 = merkleize128(row);
+    // assert(root7Level == merkle128);
+    return (count, merkle128);
+}
+
+
+/* 
+    To run (with 8 fields, not 28)
+    zokrates compile --debug -i firstLevel128Rows5Conds.zok --curve bls12_377
+    zokrates compute-witness --verbose -a 1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \ 
+    1 99 2 99 3 99 4 99 \
+    1 99 2 99 3 99 4 99 \
+    1 2 3 4 5  0 2 4 6 7  1 1 1 1 0
+    zokrates setup --proving-scheme gm17 --backend ark
+    zokrates generate-proof --proving-scheme gm17 --backend ark
+    zokrates verify
+*/
+
+/*
+Number of constraints: 474224
+
+Compilation takes much time, but generating proof is much faster than that (okay)
+
+*/

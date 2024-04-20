@@ -1,0 +1,31 @@
+import "hashes/poseidon/poseidon" as poseidon;
+
+// Compare rowVal to cmpVal - supports 3 operations - 1: eq, 2: gte, 3: lte
+def performConditionCheck(field rowVal, field cmpVal, u32 operation) -> bool {
+    return if operation == 1 {
+        rowVal == cmpVal
+    } else {
+        if operation == 2 {
+            rowVal >= cmpVal
+        } else {
+            rowVal <= cmpVal
+        }
+    };
+}
+
+def assertMerkle8Fields10Level(field[8] row, field[18] merkleArr, field root) -> bool {
+    bool mut check = true;
+    // inclusion proof
+    field dataPointHash = poseidon([poseidon(row[0..4]), poseidon(row[4..8])]);
+    log("DatapointHash {} ", dataPointHash);
+    check = check && (dataPointHash == merkleArr[0]);
+    //verify tree
+    for u32 i in 0..8 {
+        check = check && (poseidon([merkleArr[2*i], merkleArr[2*i+1]]) == merkleArr[2*i+2]);
+    }
+    //verify root
+    check = check && (poseidon([merkleArr[16], merkleArr[17]]) == root);
+    return check;
+}
+
+def firstLevel128Row5Cond()
